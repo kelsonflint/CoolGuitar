@@ -3,16 +3,17 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { loadNotesFromJSON } from './loadData';
+import { loadChordsFromJSON, loadNotesFromJSON } from './loadData';
 
 (async function initializeApp() {
   try {
     console.log("trying")
     const notes = await loadNotesFromJSON();
+    const chords = await loadChordsFromJSON();
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(
       <React.StrictMode>
-        <App notes={notes} />
+        <App notes={notes} chords={chords}/>
       </React.StrictMode>
     );
 
