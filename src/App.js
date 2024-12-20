@@ -22,7 +22,7 @@ export class Note {
 }
 
 // Define the Chord class
-export class Chord {
+export class ChordPosition {
   constructor(name, positions = Array(6).fill(-1), ICDb) {
     this.name = name; // Name of the chord
     this.positions = positions; // Array of x positions per string
@@ -30,14 +30,16 @@ export class Chord {
   }
 }
 
-// React Component to display a grid with notes
-function NotesGrid({ notes, selected, onSelectionChange }) {
-  const handleCircleClick = (x, y) => {
-    const newSelected = [...selected];
-    newSelected[y] = newSelected[y] === x ? -1 : x; // Toggle selection, reset to -1 if clicked again
-    onSelectionChange(newSelected);
-  };
+export class Chord {
+  constructor(chordId, displayName, type, notes) {
+    this.id = chordId;
+    this.displayName = displayName;
+    this.type = type;
+    this.notes = notes;
+  }
+}
 
+  // Standard tuning TODO others
   const nutMap = new Map([
     [5, 20],
     [4, 25],
@@ -47,10 +49,23 @@ function NotesGrid({ notes, selected, onSelectionChange }) {
     [0, 44],
   ]);
 
+export const fretLength = 12
+export const nutHeight = 6
+
+// React Component to display a grid with notes
+function NotesGrid({ notes, selected, onSelectionChange }) {
+  const handleCircleClick = (x, y) => {
+    const newSelected = [...selected];
+    newSelected[y] = newSelected[y] === x ? -1 : x; // Toggle selection, reset to -1 if clicked again
+    onSelectionChange(newSelected);
+  };
+
+
+
   const renderGrid = () => {
     return Array.from({ length: 6 }, (_, y) => (
       <div key={y} style={{ display: 'flex' }}>
-        {Array.from({ length: 20 }, (_, x) => {
+        {Array.from({ length: fretLength + 1 }, (_, x) => {
           const nutId = nutMap.get(y);
           const noteAtLocation = notes[nutId + x - 1];
           const isSelected = selected.some(coord => coord[0] === x && coord[1] === y);
@@ -96,7 +111,7 @@ function NotesGrid({ notes, selected, onSelectionChange }) {
                   </span>
                 </div>
               )}
-              {x < 19 && (
+              {x < fretLength && (
                 <div
                   style={{
                     width: '50px',
@@ -109,7 +124,7 @@ function NotesGrid({ notes, selected, onSelectionChange }) {
                   }}
                 />
               )}
-              {y < 5 && (
+              {y < nutHeight && (
                 <div
                   style={{
                     width: '2px',
@@ -137,7 +152,7 @@ function NotesGrid({ notes, selected, onSelectionChange }) {
       </div>
       <div style={{ display: 'inline-block'}}>
         <div style={{border: '2px solid #000'}} >{renderGrid()}</div>
-        <div>{renderFretNumbers()} </div>
+        <div>{renderFretNumbers(fretLength)} </div>
       </div>
     </div>
   )
@@ -173,10 +188,10 @@ function ChordDropdown({ chords, selectedChordKey, onChange }) {
 }
 
   // Render fret numbers below the grid
-  const renderFretNumbers = () => {
+  const renderFretNumbers = (fretLength) => {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
-        {Array.from({ length: 20 }, (_, x) => (
+        {Array.from({ length: fretLength + 1 }, (_, x) => (
           <div key={x} style={{ width: '50px', textAlign: 'center' }}>
             {x} {/* Fret numbers */}
           </div>
@@ -185,8 +200,40 @@ function ChordDropdown({ chords, selectedChordKey, onChange }) {
     );
   };
 
+  function PianoRoll({ notes, selectedNotes, toggleNote }) {
+    let x = 0;
+    const processedNotes = notes.slice(19, 56).map((note, index) => {
+      if (note.name.includes("#")) {
+        x += 1;
+      }
+      return { ...note, leftOffset: index - x };
+    });
+  
+    return (
+      <div className="piano">
+        {processedNotes.map((note, index) => (
+          <div
+            key={note.id}
+            className={`key ${note.name.includes("#") ? "black" : "white"} ${
+              selectedNotes.includes(note.id) ? "selected" : ""
+            }`}
+            onClick={() => toggleNote(note.id)}
+            style={
+              note.name.includes("#")
+                ? { left: `${note.leftOffset * 30}px` }
+                : { left: `${note.leftOffset * 30}px` }
+            }
+          >
+            <span className="note-name">{note.name}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
 function App({ notes, chords }) {
-  const [selected, setSelected] = React.useState(Array(6).fill(-1)); // Default selection: no notes selected
+  const [selectedFrets, setSelectedFrets] = React.useState(Array(6).fill(-1)); // Default selection: no notes selected
+  const [selectedNotes, setSelectedNotes] = React.useState([]);
   const [selectedChordKey, setSelectedChordKey] = React.useState(null);
 
   const handleChordChange = (chordKey) => {
@@ -194,27 +241,40 @@ function App({ notes, chords }) {
     const chord = chords.find((chord) => chordKey.includes(chord.ICDb));
     console.log(chord)
     if (chord) {
-      setSelected(chord.positions); 
+      setSelectedFrets(chord.positions); 
     }
   };
   
   const handleSelectionChange = (newSelected) => {
-    setSelected(newSelected);
+    setSelectedFrets(newSelected);
+  };
+
+  const toggleNote = (noteId) => {
+    console.log(noteId)
+    setSelectedNotes((prev) =>
+      prev.includes(noteId)
+        ? prev.filter((id) => id !== noteId)
+        : [...prev, noteId]
+    );
+    console.log(selectedNotes)
   };
 
 
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <ChordDropdown
+        <PianoRoll notes={notes} selectedNotes={selectedNotes} toggleNote={toggleNote} />
+
+        
+      </header>
+
+      <ChordDropdown
           chords={chords}
           selectedChordKey={selectedChordKey}
           onChange={handleChordChange}
         />
 
-        <NotesGrid notes={notes} selected={selected} onSelectionChange={handleSelectionChange} />
-      </header>
+        <NotesGrid notes={notes} selected={selectedFrets} onSelectionChange={handleSelectionChange} />
     </div>
   );
 }

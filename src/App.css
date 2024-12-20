@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  background-color: #282c34
 }
 
 .App-logo {
@@ -15,11 +16,9 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items:first baseline;
   font-size: calc(10px + 2vmin);
   color: white;
 }
@@ -35,4 +34,72 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+  height: 100vh;
+  background-color: #080808;
+}
+
+.piano {
+  left: 25%;
+  position: relative;
+  height: 200px;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.key {
+  position: absolute;
+  bottom: 0;
+  width: 30px;
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.key.white {
+  background: #fff;
+  border: 1px solid #ccc;
+  z-index: 1;
+}
+
+.key.black {
+  background: #333;
+  color: #fff;
+  width: 20px;
+  height: 60%;
+  bottom: 40%;
+  z-index: 2;
+  margin-left: 20px;
+}
+
+.key.selected {
+  background: #000280;
+}
+
+.key.selected.black {
+  background: #d35400;
+}
+
+.key span.note-name {
+  font-size: 10px;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.key.black span.note-name {
+  color: #fff;
+}
+
+.key.white span.note-name {
+  color: #000;
 }
